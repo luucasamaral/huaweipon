@@ -13,3 +13,6 @@ cd /temp/
 wget https://github.com/luucasamaral/huaweipon/archive/refs/heads/main.zip
 apt install unzip
 unzip main.zip
+cd huaweipon-main/
+mv huaweipon-main* /usr/lib/zabbix/externalscripts
+cd /usr/lib/zabbix/externalscripts

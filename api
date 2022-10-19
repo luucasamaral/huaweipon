@@ -10,3 +10,6 @@ pip3 install bs4
 pip3 install requests
 pip3 install cloudscraper
 cd /temp/
+wget https://github.com/luucasamaral/huaweipon/archive/refs/heads/main.zip
+apt install unzip
+unzip main.zip

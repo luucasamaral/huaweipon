@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <date>2021-09-27T13:44:23Z</date>
+    <groups>
+        <group>
+            <name>Huawei</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template Bee OLT Huawei - Beta 1</template>
+            <name>Template Bee OLT Huawei - Beta 1</name>
+            <groups>
+                <group>
+                    <name>Huawei</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>CPU</name>
+                </application>
+                <application>
+                    <name>Geral</name>
+                </application>
+                <application>
+                    <name>Interfaces</name>
+                </application>
+                <application>
+                    <name>ONUs OFF</name>
+                </application>
+                <application>
+                    <name>ONUs ON</name>
+                </application>
+                <application>
+                    <name>ONUs Status</name>
+                </application>
+                <application>
+                    <name>Pon Link Status</name>
+                </application>
+                <application>
+                    <name>Ramais</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Total ONUs Desprovisionadas</name>
+                    <type>EXTERNAL</type>
+                    <key>desprovisionadas[&quot;{$SNMP_COMMUNITY}&quot;,&quot;{HOST.CONN}&quot;]</key>
+                    <delay>5m</delay>
+                    <applications>
+                        <application>
+                            <name>Geral</name>
+                        </application>
+                    </applications>
+                </item>
+            </items>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>Descoberta de Interfaces</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>discovery[{#SNMPVALUE},IF-MIB::ifName]</snmp_oid>
+                    <key>descoberta.interfaces.b</key>
+                    <delay>1d</delay>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#SNMPVALUE}</macro>
+                                <value>GPON</value>
+                                <formulaid>A</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#SNMPVALUE}</macro>
+                                <value>ethernet</value>
+                                <formulaid>B</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Incoming traffic on interface $1</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>IF-MIB::ifInOctets.{#SNMPINDEX}</snmp_oid>
+                            <key>ifInOctets[{#SNMPVALUE}]</key>
+                            <delay>10</delay>
+                            <units>bps</units>
+                            <applications>
+                                <application>
+                                    <name>Interfaces</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <params/>
+                                </step>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>8</params>
+                                </step>
+                            </preprocessing>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Outgoing traffic on interface $1</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>IF-MIB::ifOutOctets.{#SNMPINDEX}</snmp_oid>
+                            <key>ifOutOctets[{#SNMPVALUE}]</key>
+                            <delay>10</delay>
+                            <units>bps</units>
+                            <applications>
+                                <application>
+                                    <name>Interfaces</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <params/>
+                                </step>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>8</params>
+                                </step>
+                            </preprocessing>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Descoberta de CPUs</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>discovery[{#OLTCPU},1.3.6.1.4.1.2011.2.6.7.1.1.2.1.5.0]</snmp_oid>
+                    <key>descobertas.cpu.gpon.b</key>
+                    <delay>1d</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>CPU {#SNMPINDEX}</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.4.1.2011.2.6.7.1.1.2.1.5.0.{#SNMPINDEX}</snmp_oid>
+                            <key>CPU[{#SNMPINDEX}]</key>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <applications>
+                                <application>
+                                    <name>CPU</name>
+                                </application>
+                            </applications>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Descoberta de PONs</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>discovery[{#OLTGPON},ifName]</snmp_oid>
+                    <key>descobertas.portas.pon.b</key>
+                    <delay>1d</delay>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#OLTGPON}</macro>
+                                <value>GPON</value>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Total ONUs Online por PON {#OLTGPON}</name>
+                            <type>EXTERNAL</type>
+                            <key>pon[&quot;{$SNMP_COMMUNITY}&quot;,&quot;{HOST.CONN}&quot;,&quot;{#SNMPINDEX}&quot;,&quot;1&quot;]</key>
+                            <delay>5m</delay>
+                            <applications>
+                                <application>
+                                    <name>ONUs ON</name>
+                                </application>
+                            </applications>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Total ONUs Offline por PON {#OLTGPON}</name>
+                            <type>EXTERNAL</type>
+                            <key>pon[&quot;{$SNMP_COMMUNITY}&quot;,&quot;{HOST.CONN}&quot;,&quot;{#SNMPINDEX}&quot;,&quot;2&quot;]</key>
+                            <delay>5m</delay>
+                            <applications>
+                                <application>
+                                    <name>ONUs OFF</name>
+                                </application>
+                            </applications>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>{#OLTGPON}</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.4.1.2011.6.128.1.1.2.21.1.10.{#SNMPINDEX}</snmp_oid>
+                            <key>Ramal.Status[{#SNMPINDEX} - {#OLTGPON}]</key>
+                            <applications>
+                                <application>
+                                    <name>Pon Link Status</name>
+                                </application>
+                            </applications>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>{#OLTGPON}</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.4.1.2011.6.128.1.1.2.21.1.16.{#SNMPINDEX}</snmp_oid>
+                            <key>Ramal[{#SNMPINDEX} - {#OLTGPON}]</key>
+                            <applications>
+                                <application>
+                                    <name>Ramais</name>
+                                </application>
+                            </applications>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+            </discovery_rules>
+        </template>
+    </templates>
+</zabbix_export>

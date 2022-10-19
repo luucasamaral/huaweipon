@@ -1,0 +1,219 @@
+zabbix_export:
+  version: '5.4'
+  date: '2022-09-12T18:05:27Z'
+  groups:
+    -
+      uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+    -
+      uuid: 36bff6c29af64692839d077febfc7079
+      name: 'Templates/Network devices'
+  templates:
+    -
+      uuid: e6dddd722ff04b818865a0357a258937
+      template: 'Template Net Huawei VRP SNMPv2 - BGP'
+      name: 'Template Net Huawei VRP SNMPv2 - BGP'
+      description: 'Template for Huawei VRP to monitor BGP sessions'
+      groups:
+        -
+          name: Templates
+        -
+          name: 'Templates/Network devices'
+      items:
+        -
+          uuid: 0fd9d815867b4b94ba8bfc1056d8c1f5
+          name: 'Total IPv4 FIB Routes'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.2.1.4.24.3.0
+          key: hwIPv4FibRoutes
+          delay: 5m
+          history: 7d
+          trends: 30d
+          units: Prefixes
+          tags:
+            -
+              tag: Application
+              value: 'Routing Table Info'
+        -
+          uuid: 5e1c2241c35f45ab962757580fd7eed2
+          name: 'Total IPv4 RIB Routes'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.2011.5.25.177.9.1.0
+          key: hwIPv4RibRoutes
+          delay: 5m
+          history: 7d
+          trends: 30d
+          units: Prefixes
+          tags:
+            -
+              tag: Application
+              value: 'Routing Table Info'
+        -
+          uuid: 1184f32866744bc3887fb1e452263f27
+          name: 'Total IPv6 FIB Routes'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.55.1.9.0
+          key: hwIPv6FibRoutes
+          delay: 5m
+          history: 7d
+          trends: 30d
+          units: Prefixes
+          tags:
+            -
+              tag: Application
+              value: 'Routing Table Info'
+      discovery_rules:
+        -
+          uuid: e212bd527b5d4f0dbdb8085414825eee
+          name: 'BGP4 Peer(s)'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#BGPPEER},.1.3.6.1.4.1.2011.5.25.177.1.1.2.1.4.0,{#ASNUM},.1.3.6.1.4.1.2011.5.25.177.1.1.2.1.2.0,{#ADMSTATUS},.1.3.6.1.4.1.2011.5.25.177.1.1.2.1.11.0]'
+          key: BgpPeerRemoteAddr
+          delay: 1h
+          filter:
+            conditions:
+              -
+                macro: '{#ADMSTATUS}'
+                value: '2'
+                formulaid: A
+          lifetime: '0'
+          item_prototypes:
+            -
+              uuid: 04d53a1e02584c5e89492fcf6aab9e2b
+              name: 'AS Name for IPv4 peer {#BGPPEER} - AS{#ASNUM}'
+              type: EXTERNAL
+              key: 'asname[{#BGPPEER},{HOST.IP},{#ASNUM}]'
+              delay: 1d
+              history: 30d
+              trends: '0'
+              value_type: TEXT
+              description: |
+                as_name["-p",{#ASNUM}]
+                asname[{#BGPPEER},{HOST.IP},{#ASNUM}]
+              tags:
+                -
+                  tag: Application
+                  value: 'BGP Peer {#BGPPEER}  - AS{#ASNUM}'
+            -
+              uuid: bc50e6cbfb5246ed8107eb73b50c2f9f
+              name: 'Established time for peer {#BGPPEER} - AS{#ASNUM}'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.2011.5.25.177.1.1.2.1.7.0.{#SNMPINDEX}'
+              key: 'BgpPeerFsmEstablishedTime[{#BGPPEER}]'
+              delay: 2m
+              history: 30d
+              trends: 90d
+              units: uptime
+              tags:
+                -
+                  tag: Application
+                  value: 'UPTIME BGP Peer {#BGPPEER}  - AS{#ASNUM}'
+            -
+              uuid: 621e9050a9604433936de71cf9857370
+              name: 'Total routes from peer {#BGPPEER} - AS{#ASNUM}'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.2011.5.25.177.1.1.3.1.1.0.{#SNMPINDEX}'
+              key: 'BgpPeerRoutes[{#BGPPEER}]'
+              delay: 5m
+              history: 30d
+              trends: 90d
+              units: prefixes
+              tags:
+                -
+                  tag: Application
+                  value: 'BGP Peer {#BGPPEER}  - AS{#ASNUM}'
+            -
+              uuid: 691e0eac89df40e8b96213215b87dfb7
+              name: 'Operational status for peer {#BGPPEER} - AS{#ASNUM}'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.2011.5.25.177.1.1.2.1.5.0.{#SNMPINDEX}'
+              key: 'BgpPeerState[{#BGPPEER}]'
+              delay: 2m
+              history: 30d
+              trends: 90d
+              valuemap:
+                name: BgpPeerState
+              tags:
+                -
+                  tag: Application
+                  value: 'status BGP Peer {#BGPPEER}  - AS{#ASNUM}'
+              trigger_prototypes:
+                -
+                  uuid: c3989221ba4c4ae3ae26ffc3c7ba0799
+                  expression: 'last(/Template Net Huawei VRP SNMPv2 - BGP/BgpPeerState[{#BGPPEER}])<>6'
+                  name: 'Peer {#BGPPEER} - AS{#ASNUM} is DOWN !!!'
+                  priority: AVERAGE
+      valuemaps:
+        -
+          uuid: 62286be4e33e42f9aad450914081146d
+          name: BgpPeerState
+          mappings:
+            -
+              value: '1'
+              newvalue: idle
+            -
+              value: '2'
+              newvalue: connect
+            -
+              value: '3'
+              newvalue: active
+            -
+              value: '4'
+              newvalue: opensent
+            -
+              value: '5'
+              newvalue: openconfirm
+            -
+              value: '6'
+              newvalue: established
+  graphs:
+    -
+      uuid: 2c7207127f2b4002a112d31350572379
+      name: 'FIB - IPv4'
+      graph_items:
+        -
+          sortorder: '1'
+          drawtype: FILLED_REGION
+          color: 00EE00
+          item:
+            host: 'Template Net Huawei VRP SNMPv2 - BGP'
+            key: hwIPv4FibRoutes
+    -
+      uuid: fc94cb5608f444f5b8b12909fb913cd7
+      name: 'FIB - IPv6'
+      graph_items:
+        -
+          sortorder: '1'
+          color: F63100
+          item:
+            host: 'Template Net Huawei VRP SNMPv2 - BGP'
+            key: hwIPv6FibRoutes
+    -
+      uuid: 72423b6e098b470bb7b490afda7a96e3
+      name: 'RIB - IPv4'
+      graph_items:
+        -
+          sortorder: '1'
+          drawtype: FILLED_REGION
+          color: EE0000
+          item:
+            host: 'Template Net Huawei VRP SNMPv2 - BGP'
+            key: hwIPv4RibRoutes
+    -
+      uuid: 4ca79ed067314dcd87da75fdd514e141
+      name: 'RIB x FIB - IPv4'
+      graph_items:
+        -
+          sortorder: '1'
+          drawtype: BOLD_LINE
+          color: 00EE00
+          item:
+            host: 'Template Net Huawei VRP SNMPv2 - BGP'
+            key: hwIPv4FibRoutes
+        -
+          sortorder: '2'
+          drawtype: BOLD_LINE
+          color: EE0000
+          item:
+            host: 'Template Net Huawei VRP SNMPv2 - BGP'
+            key: hwIPv4RibRoutes
